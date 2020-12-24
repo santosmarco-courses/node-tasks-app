@@ -1,7 +1,8 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
+const bcrypt = require("bcryptjs");
 
-const User = mongoose.model("courses-node-task-app-users", {
+const userSchema = new mongoose.Schema({
   name: {
     type: String,
     required: true,
@@ -10,6 +11,7 @@ const User = mongoose.model("courses-node-task-app-users", {
   email: {
     type: String,
     required: true,
+    unique: true,
     trim: true,
     lowercase: true,
     validate(value) {
@@ -38,6 +40,43 @@ const User = mongoose.model("courses-node-task-app-users", {
       }
     },
   },
+  encryptPassword: {
+    type: Boolean,
+    default: true,
+  },
 });
+
+userSchema.pre("save", async function (next) {
+  const user = this;
+  if (user.encryptPassword) {
+    const encryptedPassword = await bcrypt.hash(user.password, 8);
+    user.password = encryptedPassword;
+    user.encryptPassword = false;
+  }
+
+  next();
+});
+
+userSchema.statics.findByCredentials = async ({ email, password }) => {
+  const userDoc = await User.findOne({ email });
+
+  if (!userDoc) {
+    throw new Error(
+      "Something went wrong when trying to find User by the provided credentials."
+    );
+  }
+
+  const isMatch = await bcrypt.compare(password, userDoc.password);
+
+  if (!isMatch) {
+    throw new Error(
+      "Something went wrong when trying to find User by the provided credentials."
+    );
+  }
+
+  return userDoc;
+};
+
+const User = mongoose.model("courses-node-task-app-users", userSchema);
 
 module.exports = User;

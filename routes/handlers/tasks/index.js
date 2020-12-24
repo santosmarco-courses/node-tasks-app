@@ -1,4 +1,4 @@
-const { dbHelpers } = require("../../db");
+const { dbHelpers } = require("../../../db");
 
 const { Task } = dbHelpers;
 

@@ -8,6 +8,8 @@ const dbHelpers = require("./helpers");
 const CONNECTION_OPTIONS = {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  useFindAndModify: false,
+  useCreateIndex: true,
 };
 
 const initDatabase = async () => {

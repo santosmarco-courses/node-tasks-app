@@ -34,7 +34,15 @@ const fetchById = (userId) => {
 const updateById = (userId, updateObj) => {
   return execPromiseWithOra(
     async () => {
-      await User.findByIdAndUpdate(userId, updateObj, { runValidators: true });
+      const userDoc = await User.findById(userId);
+      Object.entries(updateObj).forEach(([key, val]) => {
+        if (key === "password") {
+          userDoc.encryptPassword = true;
+        }
+        userDoc[key] = val;
+      });
+      await userDoc.save();
+
       return User.findById(userId);
     },
     {
@@ -57,6 +65,16 @@ const deleteById = (userId) => {
   });
 };
 
+const signIn = ({ email, password }) => {
+  return execPromiseWithOra(() => User.findByCredentials({ email, password }), {
+    startText: `Signing in user: ${email}...`,
+    succeedText: (res) => `User "${res.email}" signed in successfully:`,
+    failText: (err) =>
+      `Unable to sign in user: ${chalk.reset.red.italic(err.message)}`,
+    onSucceed: (res) => console.log(res),
+  });
+};
+
 module.exports = {
   instance: User,
   create,
@@ -64,4 +82,5 @@ module.exports = {
   fetchById,
   updateById,
   deleteById,
+  signIn,
 };

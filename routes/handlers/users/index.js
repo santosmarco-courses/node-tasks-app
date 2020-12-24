@@ -1,4 +1,4 @@
-const { dbHelpers } = require("../../db");
+const { dbHelpers } = require("../../../db");
 
 const { User } = dbHelpers;
 
@@ -47,10 +47,21 @@ const deleteUserByIdHandler = async (req, res) => {
   }
 };
 
+const signInUserHandler = async (req, res) => {
+  const { email, password } = req.body;
+  const signInRes = await User.signIn({ email, password });
+  if (signInRes instanceof Error) {
+    return res.status(400).json({ error: true, message: signInRes.message });
+  } else {
+    return res.json(signInRes);
+  }
+};
+
 module.exports = {
   addUserHandler,
   fetchAllUsersHandler,
   fetchUserByIdHandler,
   updateUserByIdHandler,
   deleteUserByIdHandler,
+  signInUserHandler,
 };
